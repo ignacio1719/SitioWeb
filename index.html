@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ Plan de juego — Partido Mixto</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --pitch-dark:#173B2B;
+    --pitch:#1F5138;
+    --pitch-light:#2E6B4A;
+    --line:rgba(255,255,255,.4);
+    --paper:#F2F5EF;
+    --card:#FFFFFF;
+    --ink:#16241C;
+    --ink-soft:#57685E;
+    --gold:#F0B23A;
+    --def:#3566D6;
+    --def-bg:#EAF0FE;
+    --med:#E2A72E;
+    --med-bg:#FCF3E1;
+    --del:#E1543F;
+    --del-bg:#FCEAE7;
+    --gk:#8A5CC7;
+    --gk-bg:#F1EAFA;
+    --radius:18px;
+    --shadow:0 10px 30px -12px rgba(23,59,43,.25);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Manrope',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:.03em;
+    font-weight:400;
+    margin:0;
+  }
+  .mono{font-family:'Space Mono',monospace;}
+  a{color:inherit;}
+  img{max-width:100%;}
+  section{padding:56px 20px;}
+  .wrap{max-width:900px;margin:0 auto;}
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    display:block;
+  }
+
+  /* ---------- HERO / PITCH ---------- */
+  .hero{
+    background:
+      repeating-linear-gradient(
+        0deg,
+        var(--pitch) 0px, var(--pitch) 46px,
+        var(--pitch-light) 46px, var(--pitch-light) 92px
+      );
+    color:#fff;
+    padding:38px 16px 44px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(9,26,18,.55) 0%, rgba(9,26,18,.15) 40%, rgba(9,26,18,.65) 100%);
+    pointer-events:none;
+  }
+  .hero-inner{position:relative;max-width:640px;margin:0 auto;text-align:center;}
+  .hero h1{
+    font-size:clamp(2.1rem, 8vw, 3.2rem);
+    line-height:.95;
+    text-shadow:0 4px 18px rgba(0,0,0,.35);
+  }
+  .hero p.sub{
+    margin-top:10px;
+    font-size:1rem;
+    color:#DCEEE1;
+    max-width:460px;
+    margin-left:auto;margin-right:auto;
+  }
+  .formation-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    margin-top:16px;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.35);
+    padding:6px 16px;border-radius:100px;
+    font-family:'Space Mono',monospace;
+    font-size:.82rem;
+    backdrop-filter:blur(2px);
+  }
+  .formation-badge b{color:var(--gold);font-weight:700;}
+
+  /* mini pitch diagram */
+  .pitch-field{
+    position:relative;
+    margin:34px auto 6px;
+    max-width:340px;
+    aspect-ratio:3/4;
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+    border:2px solid var(--line);
+    border-radius:14px;
+    padding:14px 8px;
+  }
+  .pitch-field::before{ /* halfway-ish arc flourish */
+    content:"";
+    position:absolute;left:50%;top:8%;
+    width:70px;height:70px;
+    border:2px solid var(--line);
+    border-radius:50%;
+    transform:translateX(-50%);
+  }
+  .pitch-row{
+    display:flex;justify-content:space-around;align-items:center;
+    position:relative;z-index:1;
+  }
+  .pitch-row.gk{margin-top:auto;}
+  .p-dot{
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    text-decoration:none;color:#fff;
+    transition:transform .15s ease;
+  }
+  .p-dot:hover, .p-dot:focus-visible{transform:translateY(-3px);}
+  .p-dot .circle{
+    width:40px;height:40px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Mono',monospace;font-weight:700;font-size:.68rem;
+    color:#12271b;
+    box-shadow:0 4px 10px rgba(0,0,0,.3);
+    border:2px solid rgba(255,255,255,.7);
+  }
+  .p-dot .label{font-size:.68rem;font-weight:700;letter-spacing:.02em;text-shadow:0 2px 6px rgba(0,0,0,.5);}
+  .p-dot.def .circle{background:var(--def);color:#fff;}
+  .p-dot.med .circle{background:var(--med);}
+  .p-dot.del .circle{background:var(--del);color:#fff;}
+  .p-dot.gk-dot .circle{background:var(--gk);color:#fff;}
+  .pitch-hint{
+    text-align:center;font-size:.72rem;color:#CFE4D6;margin-top:14px;
+    font-family:'Space Mono',monospace;
+  }
+
+  /* quick nav */
+  .quicknav{
+    position:sticky;top:0;z-index:40;
+    background:rgba(23,59,43,.96);
+    backdrop-filter:blur(6px);
+    padding:10px 0;
+    box-shadow:0 6px 16px -8px rgba(0,0,0,.4);
+  }
+  .quicknav-scroll{
+    display:flex;gap:8px;overflow-x:auto;
+    padding:0 16px;
+    scrollbar-width:none;
+  }
+  .quicknav-scroll::-webkit-scrollbar{display:none;}
+  .qpill{
+    flex:0 0 auto;
+    font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;
+    color:#fff;text-decoration:none;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.25);
+    padding:7px 13px;border-radius:100px;
+    white-space:nowrap;
+  }
+  .qpill:active{background:var(--gold);color:#16241C;border-color:var(--gold);}
+
+  /* ---------- REGLAS ---------- */
+  .rules-head{text-align:center;max-width:520px;margin:0 auto 26px;}
+  .rules-head h2{font-size:clamp(1.7rem,6vw,2.3rem);}
+  .rules-list{
+    display:grid;gap:12px;
+    counter-reset:rule;
+  }
+  .rule-card{
+    background:var(--card);
+    border-radius:14px;
+    padding:16px 18px;
+    display:flex;gap:14px;align-items:flex-start;
+    box-shadow:var(--shadow);
+    border-left:5px solid var(--gold);
+  }
+  .rule-num{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:1.6rem;color:var(--gold);
+    line-height:1;min-width:28px;
+  }
+  .rule-card p{margin:0;font-size:.96rem;color:var(--ink);}
+
+  /* ---------- PLAYER CARDS ---------- */
+  .players-head{text-align:center;max-width:560px;margin:0 auto 30px;}
+  .players-head h2{font-size:clamp(1.7rem,6vw,2.3rem);}
+  .players-head p{color:var(--ink-soft);margin-top:8px;font-size:.95rem;}
+
+  .legend{
+    display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:36px;
+  }
+  .legend span{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:'Space Mono',monospace;font-size:.7rem;
+    padding:5px 11px;border-radius:100px;background:var(--card);
+    box-shadow:var(--shadow);
+  }
+  .legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+  .cards-grid{
+    display:grid;gap:22px;
+    grid-template-columns:1fr;
+  }
+  @media(min-width:680px){
+    .cards-grid{grid-template-columns:1fr 1fr;}
+  }
+
+  .p-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    scroll-margin-top:74px;
+    opacity:0;
+    transform:translateY(14px);
+    animation:none;
+  }
+  .p-card.in{
+    animation:rise .5s ease forwards;
+  }
+  @keyframes rise{
+    to{opacity:1;transform:translateY(0);}
+  }
+  .p-card .p-head{
+    padding:18px 20px 14px;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:10px;
+  }
+  .p-card.def .p-head{background:var(--def-bg);}
+  .p-card.med .p-head{background:var(--med-bg);}
+  .p-card.del .p-head{background:var(--del-bg);}
+  .p-card.gk .p-head{background:var(--gk-bg);}
+
+  .p-name{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;line-height:1;}
+  .p-pos{font-size:.86rem;color:var(--ink-soft);margin-top:4px;}
+  .p-tag{
+    font-family:'Space Mono',monospace;font-weight:700;font-size:.66rem;
+    padding:5px 10px;border-radius:8px;color:#fff;white-space:nowrap;
+  }
+  .p-card.def .p-tag{background:var(--def);}
+  .p-card.med .p-tag{background:var(--med);color:#3a2a06;}
+  .p-card.del .p-tag{background:var(--del);}
+  .p-card.gk .p-tag{background:var(--gk);}
+
+  .p-body{padding:16px 20px 20px;}
+  .p-func{font-size:.92rem;color:var(--ink);margin-bottom:14px;}
+  .p-row{margin-bottom:12px;}
+  .p-row .row-label{
+    font-weight:800;font-size:.82rem;
+    display:flex;align-items:center;gap:6px;margin-bottom:3px;
+  }
+  .p-row p{margin:0;font-size:.9rem;color:var(--ink-soft);}
+  .p-mission{
+    margin-top:14px;
+    background:var(--paper);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:.88rem;font-weight:700;
+    color:var(--ink);
+    display:flex;gap:8px;align-items:flex-start;
+  }
+  .term{
+    font-style:normal;font-weight:700;border-bottom:2px dotted currentColor;
+  }
+  .term-note{
+    display:block;font-size:.78rem;font-weight:500;color:var(--ink-soft);
+    margin-top:2px;font-style:italic;
+  }
+
+  /* ---------- MOVIMIENTOS ---------- */
+  .moves-grid{
+    display:grid;gap:18px;
+    grid-template-columns:1fr;
+  }
+  @media(min-width:680px){ .moves-grid{grid-template-columns:1fr 1fr;} }
+  .move-card{
+    border-radius:var(--radius);
+    padding:22px;color:#fff;
+    box-shadow:var(--shadow);
+  }
+  .move-card.on{background:linear-gradient(150deg,#1F5138,#173B2B);}
+  .move-card.off{background:linear-gradient(150deg,#8A342B,#5E211B);}
+  .move-card h3{font-size:1.5rem;margin-bottom:12px;}
+  .move-card ul{margin:0;padding-left:18px;font-size:.9rem;}
+  .move-card li{margin-bottom:7px;color:rgba(255,255,255,.92);}
+
+  /* ---------- BLOCKED SECTION ---------- */
+  .blocked{
+    background:var(--pitch-dark);
+    color:#fff;border-radius:var(--radius);
+    padding:28px 22px;
+    box-shadow:var(--shadow);
+  }
+  .blocked h2{font-size:1.7rem;margin-bottom:4px;}
+  .blocked p.lead{color:#CFE4D6;font-size:.92rem;margin-bottom:16px;}
+  .steps{counter-reset:step;display:grid;gap:10px;}
+  .steps li{
+    list-style:none;display:flex;gap:12px;align-items:flex-start;
+    font-size:.92rem;
+  }
+  .steps li::before{
+    counter-increment:step;content:counter(step);
+    background:var(--gold);color:#16241C;font-weight:800;
+    min-width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Mono',monospace;font-size:.8rem;flex:0 0 auto;
+  }
+
+  /* ---------- COMUNICACION ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+  .chip{
+    background:var(--card);border-radius:14px;padding:12px 16px;
+    box-shadow:var(--shadow);flex:1 1 150px;
+  }
+  .chip b{
+    font-family:'Space Mono',monospace;color:var(--gold);
+    background:var(--pitch-dark);padding:2px 8px;border-radius:6px;
+    font-size:.78rem;display:inline-block;margin-bottom:6px;
+  }
+  .chip p{margin:0;font-size:.85rem;color:var(--ink-soft);}
+
+  /* ---------- FINAL ---------- */
+  .final{
+    background:
+      repeating-linear-gradient(0deg,var(--pitch) 0px,var(--pitch) 46px,var(--pitch-light) 46px,var(--pitch-light) 92px);
+    color:#fff;text-align:center;position:relative;overflow:hidden;
+  }
+  .final::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(9,26,18,.65), rgba(9,26,18,.35));
+  }
+  .final-inner{position:relative;max-width:560px;margin:0 auto;}
+  .final h2{font-size:clamp(2rem,7vw,2.8rem);}
+  .final p{color:#DCEEE1;margin-top:12px;font-size:1rem;}
+  .ball{font-size:2.4rem;display:block;margin-bottom:6px;}
+
+  footer{
+    text-align:center;padding:24px;color:var(--ink-soft);font-size:.78rem;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .p-card{animation:none !important;opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow" style="color:#CFE4D6;">Antes del partido, leé esto</span>
+    <h1>⚽ Plan de juego<br>Partido Mixto</h1>
+    <p class="sub">No hace falta ser profesional. Solo hace falta saber dónde estar, ayudarnos y divertirnos. Acá abajo tenés tu posición explicada bien clarito.</p>
+    <div class="formation-badge">Jugamos con formación <b>3&nbsp;–&nbsp;2&nbsp;–&nbsp;1</b></div>
+
+    <div class="pitch-field" aria-label="Formación 3-2-1, tocá tu nombre para ir a tu tarjeta">
+      <div class="pitch-row del">
+        <a class="p-dot del" href="#torton"><span class="circle">9</span><span class="label">TORTON</span></a>
+      </div>
+      <div class="pitch-row med">
+        <a class="p-dot med" href="#fede"><span class="circle">F9</span><span class="label">FEDE</span></a>
+        <a class="p-dot med" href="#nacho"><span class="circle">5</span><span class="label">NACHO</span></a>
+      </div>
+      <div class="pitch-row def">
+        <a class="p-dot def" href="#mili"><span class="circle">3</span><span class="label">MILI</span></a>
+        <a class="p-dot def" href="#juanjo"><span class="circle">4</span><span class="label">JUANJO</span></a>
+        <a class="p-dot def" href="#mica"><span class="circle">2</span><span class="label">MICA</span></a>
+      </div>
+      <div class="pitch-row gk">
+        <a class="p-dot gk-dot" href="#male"><span class="circle">1</span><span class="label">MALE</span></a>
+      </div>
+    </div>
+    <span class="pitch-hint">☝️ Tocá tu nombre en la cancha para ir directo a tu tarjeta</span>
+  </div>
+</header>
+
+<!-- ===================== QUICK NAV ===================== -->
+<nav class="quicknav" aria-label="Ir directo a tu tarjeta">
+  <div class="quicknav-scroll">
+    <a class="qpill" href="#reglas">🧠 Reglas</a>
+    <a class="qpill" href="#mili">MILI</a>
+    <a class="qpill" href="#juanjo">JUANJO</a>
+    <a class="qpill" href="#mica">MICA</a>
+    <a class="qpill" href="#nacho">NACHO</a>
+    <a class="qpill" href="#fede">FEDE</a>
+    <a class="qpill" href="#torton">TORTON</a>
+    <a class="qpill" href="#male">MALE</a>
+    <a class="qpill" href="#movimientos">🔄 Equipo</a>
+    <a class="qpill" href="#bloqueada">🤔 Ayuda</a>
+    <a class="qpill" href="#comunicacion">💬 Códigos</a>
+  </div>
+</nav>
+
+<!-- ===================== 5 REGLAS ===================== -->
+<section id="reglas">
+  <div class="wrap">
+    <div class="rules-head">
+      <span class="eyebrow">Lo esencial</span>
+      <h2>🧠 Las 5 cosas más importantes</h2>
+    </div>
+    <div class="rules-list">
+      <div class="rule-card"><span class="rule-num">1</span><p>Cuando tenemos la pelota, siempre intentamos ofrecer una opción de pase: buscá un espacio libre y mostrate.</p></div>
+      <div class="rule-card"><span class="rule-num">2</span><p>No nos amontonamos todas alrededor de la pelota. Si una compañera ya está ahí, buscá otro espacio.</p></div>
+      <div class="rule-card"><span class="rule-num">3</span><p>Cuando alguien del equipo tiene la pelota, las demás ocupamos espacios diferentes para darle opciones.</p></div>
+      <div class="rule-card"><span class="rule-num">4</span><p>Cuando perdemos la pelota, todas ayudamos a defender. No es solo trabajo de las defensoras.</p></div>
+      <div class="rule-card"><span class="rule-num">5</span><p>Lo más importante: comunicarnos y disfrutar el partido. Nada de esto sirve si no hablamos entre nosotras.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== JUGADORAS ===================== -->
+<section id="jugadores" style="background:var(--card);">
+  <div class="wrap">
+    <div class="players-head">
+      <span class="eyebrow">Tarjetas individuales</span>
+      <h2>Tu posición, en 30 segundos</h2>
+      <p>Buscá tu nombre y leé tu tarjeta. No hace falta memorizar nada más que esto.</p>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:var(--def);"></i> Defensa</span>
+      <span><i style="background:var(--med);"></i> Mediocampo</span>
+      <span><i style="background:var(--del);"></i> Ataque</span>
+      <span><i style="background:var(--gk);"></i> Arco</span>
+    </div>
+
+    <div class="cards-grid">
+
+      <!-- MILI -->
+      <article class="p-card def" id="mili">
+        <div class="p-head">
+          <div><div class="p-name">MILI</div><div class="p-pos">Defensora <span class="term">lateral</span> izquierda</div>
+            <span class="term-note">"Lateral" = jugás pegada al costado de la cancha, no en el medio.</span>
+          </div>
+          <span class="p-tag">DEF · 3</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Tu misión principal es defender tu banda (el costado izquierdo) y ayudar a que la pelota salga jugando desde atrás.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Buscá a Juanjo (el <span class="term">central</span>, el defensor del medio) o a Nacho, que se va a estar mostrando todo el partido para recibir. Ojo: cuando Juanjo tenga la pelota, no te quedes pegada a él. Abrite hacia la izquierda para darle otra opción de pase y para que no queden las dos amontonadas en el mismo lugar.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Acercate más a Juanjo para cerrar espacios entre ustedes y armar una defensa más compacta.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Juanjo y Nacho.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Quedarte pegada a Juanjo cuando él tiene la pelota.</p></div>
+          <div class="p-mission">⭐ <span>Con pelota, me abro. Sin pelota, me cierro con Juanjo.</span></div>
+        </div>
+      </article>
+
+      <!-- JUANJO -->
+      <article class="p-card def" id="juanjo">
+        <div class="p-head">
+          <div><div class="p-name">JUANJO</div><div class="p-pos">Defensor <span class="term">central</span></div>
+            <span class="term-note">"Central" = el defensor del medio, el que ordena a las demás.</span>
+          </div>
+          <span class="p-tag">DEF · 4</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Defender y ser una opción segura de pase cuando recuperamos la pelota. No hace falta que salgas corriendo para adelante todo el rato: primero das seguridad atrás.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Ubicate en un lugar donde tus compañeras te puedan pasar fácil y con confianza. Sos la salida segura del equipo.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Ordená la defensa, ayudá a cerrar el medio y transmití tranquilidad al resto del equipo.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Mili, Mica y Male.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Salir corriendo para adelante y dejar la defensa vacía.</p></div>
+          <div class="p-mission">⭐ <span>Doy seguridad atrás antes que nada.</span></div>
+        </div>
+      </article>
+
+      <!-- MICA -->
+      <article class="p-card def" id="mica">
+        <div class="p-head">
+          <div><div class="p-name">MICA</div><div class="p-pos">Defensora lateral derecha</div></div>
+          <span class="p-tag">DEF · 2</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Defender tu banda (el costado derecho) y ayudar a sacar la pelota jugando.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Tus principales opciones son Nacho, que se va a estar mostrando constantemente, y Juanjo. Igual que Mili: no te quedes pegada a Juanjo cuando él tiene la pelota. Abrite hacia la derecha para ocupar espacio.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Acercate más a Juanjo para ayudar a cerrar espacios.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Nacho y Juanjo.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Quedarte pegada a Juanjo cuando él tiene la pelota.</p></div>
+          <div class="p-mission">⭐ <span>Con pelota, me abro. Sin pelota, me cierro con Juanjo.</span></div>
+        </div>
+      </article>
+
+      <!-- NACHO -->
+      <article class="p-card med" id="nacho">
+        <div class="p-head">
+          <div><div class="p-name">NACHO</div><div class="p-pos">Mediocampista central</div>
+            <span class="term-note">Es la "estrella" del equipo (según él mismo, jajaja). Juega en el medio de la cancha, conectando defensa y ataque.</span>
+          </div>
+          <span class="p-tag">MED · 5</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Sos la conexión del equipo. Tu trabajo es mostrarte todo el partido para recibir, intentar llevar la pelota hacia adelante, y participar tanto en ataque como en defensa.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Ayudá a conectar la defensa con Fede y Torton. Cuando una compañera tenga la pelota, movete hacia un espacio donde puedas recibir. No te quedes parado esperando que te la den.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Ayudá a recuperar la pelota, jugás prácticamente por toda la cancha.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Un poco con todas, pero sobre todo con Fede y Torton en ataque, y con las tres defensoras cuando hay que recuperar.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Quedarte parado esperando la pelota, y también querer hacer todo vos solo — para eso están tus compañeras.</p></div>
+          <div class="p-mission">⭐ <span>Conecto al equipo (sin hacerlo todo solo, jaja).</span></div>
+        </div>
+      </article>
+
+      <!-- FEDE -->
+      <article class="p-card med" id="fede">
+        <div class="p-head">
+          <div><div class="p-name">FEDE</div><div class="p-pos"><span class="term">Falso 9</span></div>
+            <span class="term-note">"Falso 9" = en vez de quedarte fijo esperando arriba, bajás un poco a ayudar a armar el ataque. Así confundís a las rivales, que no saben si marcarte arriba o dejarte bajar.</span>
+          </div>
+          <span class="p-tag">MED · 10</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Ayudar a Nacho en el último tercio de la cancha (cerca del arco rival) y ser una opción constante de pase.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Movete para ofrecer pase y ayudar a generar espacios. Cuando puedas, llegá al área para intentar convertir. Sos uno de los principales socios de Nacho en ataque.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Junto con Torton, tratá de dificultar la salida del equipo rival.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Nacho, principalmente, y Torton.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Quedarte fijo esperando arriba sin moverte.</p></div>
+          <div class="p-mission">⭐ <span>Ayudo a Nacho a armar, y llego al área a buscar el gol.</span></div>
+        </div>
+      </article>
+
+      <!-- TORTON -->
+      <article class="p-card del" id="torton">
+        <div class="p-head">
+          <div><div class="p-name">TORTON</div><div class="p-pos">Delantera / <span class="term">9</span></div>
+            <span class="term-note">Ser "la 9" significa que sos la referencia de ataque: la que espera arriba lista para definir.</span>
+          </div>
+          <span class="p-tag">DEL · 9</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Estar preparada para convertir. No necesitás bajar constantemente hasta nuestra defensa: tu función principal es ser nuestra referencia ofensiva.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Ubicate donde puedas recibir cerca del arco. Estate atenta a los pases de Nacho y Fede, y aprovechá las oportunidades de gol que aparezcan.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Junto con Fede, tratá de complicarle la salida al equipo rival, sin necesidad de volver hasta el fondo.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Nacho y Fede.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Bajar todo el tiempo hasta nuestra defensa — quedate arriba, ahí es donde más nos servís.</p></div>
+          <div class="p-mission">⭐ <span>Soy la referencia arriba: estoy atenta para definir.</span></div>
+        </div>
+      </article>
+
+      <!-- MALE -->
+      <article class="p-card gk" id="male">
+        <div class="p-head">
+          <div><div class="p-name">MALE</div><div class="p-pos">Arquera</div></div>
+          <span class="p-tag">ARQ · 1</span>
+        </div>
+        <div class="p-body">
+          <p class="p-func">Atajar todo lo que puedas. No le tengas miedo a la pelota.</p>
+          <div class="p-row"><div class="row-label">🟢 Con pelota</div><p>Comunicate con las defensoras y buscá la salida más clara y segura.</p></div>
+          <div class="p-row"><div class="row-label">🔴 Defendiendo</div><p>Ayudá a ordenar al equipo desde atrás — vos ves toda la cancha, así que hablá y guiá.</p></div>
+          <div class="p-row"><div class="row-label">🤝 Asociate con</div><p>Toda la línea defensiva, especialmente Juanjo.</p></div>
+          <div class="p-row"><div class="row-label">⚠️ Evitá</div><p>Quedarte calladita: tu voz ordena a toda la defensa.</p></div>
+          <div class="p-mission">⭐ <span>Soy el último muro. Nada pasa sin que yo diga algo.</span></div>
+          <div class="p-row" style="margin-top:12px;"><div class="row-label">ℹ️ Dato extra</div><p>Si en algún momento salís del arco y jugás como jugadora de campo, pasás a cumplir función de defensora central: priorizá defender y mantener segura la zona del medio.</p></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MOVIMIENTOS ===================== -->
+<section id="movimientos">
+  <div class="wrap">
+    <div class="rules-head">
+      <span class="eyebrow">La foto completa</span>
+      <h2>🔄 ¿Cómo nos movemos como equipo?</h2>
+    </div>
+    <div class="moves-grid">
+      <div class="move-card on">
+        <h3>🟢 Cuando tenemos la pelota</h3>
+        <ul>
+          <li>Mili y Mica (las laterales) se abren hacia los costados.</li>
+          <li>Juanjo queda como opción segura atrás.</li>
+          <li>Nacho se muestra constantemente para recibir.</li>
+          <li>Fede se acerca y se asocia con Nacho.</li>
+          <li>Torton se mantiene arriba como referencia ofensiva.</li>
+          <li>Evitamos estar todas amontonadas cerca de la pelota.</li>
+        </ul>
+      </div>
+      <div class="move-card off">
+        <h3>🔴 Cuando perdemos la pelota</h3>
+        <ul>
+          <li>Las defensoras priorizan cerrar espacios.</li>
+          <li>Mili y Mica se acercan más a Juanjo.</li>
+          <li>Nacho ayuda a recuperar la pelota.</li>
+          <li>Fede y Torton dificultan la salida rival desde arriba.</li>
+          <li>Todas colaboramos para recuperar la pelota, no solo la defensa.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BLOQUEADA ===================== -->
+<section id="bloqueada">
+  <div class="wrap">
+    <div class="blocked">
+      <h2>🤔 ¿No sabés qué hacer?</h2>
+      <p class="lead">No pasa nada, le pasa a todo el mundo. Seguí estos pasos:</p>
+      <ol class="steps">
+        <li>Mirá dónde está la pelota.</li>
+        <li>Buscá un espacio libre.</li>
+        <li>Mostrate para recibir.</li>
+        <li>Si no podés recibir, quedate tranquila en tu posición.</li>
+        <li>Si perdimos la pelota, ayudá a defender.</li>
+        <li>Y sobre todo: hablá con tus compañeras. Comunicarnos vale más que cualquier táctica.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COMUNICACION ===================== -->
+<section id="comunicacion" style="background:var(--card);">
+  <div class="wrap">
+    <div class="rules-head">
+      <span class="eyebrow">Nuestro idioma en cancha</span>
+      <h2>💬 Palabras que nos gritamos</h2>
+    </div>
+    <div class="chips">
+      <div class="chip"><b>"SOLA"</b><p>No tenés ninguna rival encima, jugá tranquila.</p></div>
+      <div class="chip"><b>"TIEMPO"</b><p>Podés controlar y pensar tranquila, no hay apuro.</p></div>
+      <div class="chip"><b>"ATRÁS"</b><p>Hay una compañera detrás tuyo, dale para atrás si hace falta.</p></div>
+      <div class="chip"><b>"MÍA"</b><p>Voy yo a buscar la pelota, quedate donde estás.</p></div>
+      <div class="chip"><b>"ABRITE"</b><p>Ocupá más espacio hacia un costado.</p></div>
+      <div class="chip"><b>"SUBÍ"</b><p>Avanzá hacia adelante, sumate al ataque.</p></div>
+      <div class="chip"><b>"BAJÁ"</b><p>Retrocedé para ayudar a defender.</p></div>
+      <div class="chip"><b>"CAMBIO"</b><p>Pasala al otro lado de la cancha, hay más espacio ahí.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL ===================== -->
+<section class="final">
+  <div class="wrap final-inner">
+    <span class="ball">🔥</span>
+    <h2>¡A disfrutar el partido!</h2>
+    <p>No tenemos que ser profesionales. Solo tenemos que saber dónde estar, ayudarnos entre todas y todos, y comunicarnos. Equivocarse forma parte del juego — lo que importa es levantarse, gritar "mía" de nuevo y seguir jugando en equipo. ¡Vamos que la pasamos bien!</p>
+  </div>
+</section>
+
+<footer>Plan de juego · Formación 3-2-1 · Hecho con cariño para el equipo 💚</footer>
+
+<script>
+  // Reveal de tarjetas al hacer scroll — sutil, respeta reduce-motion.
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cards = document.querySelectorAll('.p-card');
+  if (prefersReduced || !('IntersectionObserver' in window)) {
+    cards.forEach(c => { c.style.opacity = 1; c.style.transform = 'none'; });
+  } else {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    cards.forEach(c => io.observe(c));
+  }
+</script>
+
+</body>
+</html>
